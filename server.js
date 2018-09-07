@@ -33,10 +33,16 @@ app.get("/:company/:page?", (req, res) => {
           });
         }
         if (result) {
+          const filings = result.companyFilings.results[0].filing.map(f => ({
+            dateFiled: f.dateFiled ? f.dateFiled[0] : "-- Empty data --",
+            filingHREF: f.filingHREF ? f.filingHREF[0] : "-- Empty data --",
+            formName: f.formName ? f.formName[0] : "-- Empty data --",
+            type: f.type ? f.type[0] : "-- Empty data --"
+          }));
           res.json({
             result: {
-              name: result.companyFilings.companyInfo[0].name,
-              fillings: result.companyFilings.results[0].filing
+              name: result.companyFilings.companyInfo[0].name[0],
+              filings: filings
             },
             errors: []
           });
