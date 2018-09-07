@@ -8,6 +8,8 @@ app.use(cors());
 
 app.get("/:company/:page?", (req, res) => {
   const page = req.params.page ? req.params.page : 0;
+
+  console.log(`Request for ${req.params.company} : ${page}`);
   request(
     `https://www.sec.gov/cgi-bin/browse-edgar?CIK=${
       req.params.company
