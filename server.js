@@ -9,7 +9,7 @@ app.use(cors());
 const wrong_resquest = (req, res) => {
   res.json({
     result: {},
-    errors: ["Please provide a compnay by its trading symbol and optionally a page"]
+    errors: ["Please provide a company by its trading symbol and optionally a page"]
   });
 };
 
