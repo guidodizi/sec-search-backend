@@ -6,14 +6,20 @@ var parseString = require("xml2js").parseString;
 const app = express();
 app.use(cors());
 
-app.get("/:company/:page?", (req, res) => {
-  const page = req.params.page ? req.params.page : 0;
+const wrong_resquest = (req, res) => {
+  res.json({
+    result: {},
+    errors: ["Please provide a compnay by its trading symbol and optionally a page"]
+  });
+};
 
-  console.log(`Request for ${req.params.company} : ${page}`);
+app.get("/:company/:page?", (req, res) => {
+  let page = req.params.page ? req.params.page : 0;
+
   request(
     `https://www.sec.gov/cgi-bin/browse-edgar?CIK=${
       req.params.company
-    }&owner=exclude&action=getcompany&output=xml&start=${page * 40}&count=${(page + 1) * 40}`,
+    }&owner=exclude&action=getcompany&output=xml&start=${page * 40}&count=${++page * 40}`,
     { headers: { Accept: "application/xml" } },
     (err, resp, body) => {
       if (err) {
@@ -21,7 +27,10 @@ app.get("/:company/:page?", (req, res) => {
       }
       parseString(body, (err, result) => {
         if (err) {
-          console.log(err);
+          res.json({
+            result: {},
+            errors: ["There was error while retrieving the company's data"]
+          });
         }
         if (result) {
           res.json({
@@ -41,5 +50,7 @@ app.get("/:company/:page?", (req, res) => {
     }
   );
 });
+
+app.get("*", wrong_resquest);
 
 app.listen(process.env.PORT || 5000, () => console.log("Server up & running"));
