@@ -38,19 +38,30 @@ app.get("/:company/:page?", (req, res) => {
           });
         }
         if (result) {
-          const filings = result.companyFilings.results[0].filing.map(f => ({
-            dateFiled: f.dateFiled ? f.dateFiled[0] : "-- Empty data --",
-            filingHREF: f.filingHREF ? f.filingHREF[0] : "-- Empty data --",
-            formName: f.formName ? f.formName[0] : "-- Empty data --",
-            type: f.type ? f.type[0] : "-- Empty data --"
-          }));
-          res.json({
-            result: {
-              name: result.companyFilings.companyInfo[0].name[0],
-              filings: filings
-            },
-            errors: []
-          });
+          if (result.companyFilings.results && result.companyFilings.results.length === 1) {
+            const filings = result.companyFilings.results[0].filing.map(f => ({
+              dateFiled: f.dateFiled ? f.dateFiled[0] : "-- Empty data --",
+              filingHREF: f.filingHREF ? f.filingHREF[0] : "-- Empty data --",
+              formName: f.formName ? f.formName[0] : "-- Empty data --",
+              type: f.type ? f.type[0] : "-- Empty data --"
+            }));
+            res.json({
+              result: {
+                name: result.companyFilings.companyInfo[0].name[0],
+                filings: filings
+              },
+              errors: []
+            });
+            //Response has no filings, only name. This could be because count exceeded existing filings
+          } else {
+            res.json({
+              result: {
+                name: result.companyFilings.companyInfo[0].name[0],
+                filings: []
+              },
+              errors: []
+            });
+          }
         } else {
           res.json({
             result: {},
