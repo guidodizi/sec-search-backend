@@ -16,11 +16,12 @@ const wrong_resquest = (req, res) => {
 app.get("/:company/:page?", (req, res) => {
   let page = req.params.page ? req.params.page : 0;
 
-  console.log(
-    `https://www.sec.gov/cgi-bin/browse-edgar?CIK=${
-      req.params.company
-    }&owner=exclude&action=getcompany&output=xml&start=${page * 40}&count=40`
-  );
+  if (!/^[a-zA-Z]+$/.test(req.params.company)) {
+    return res.json({
+      result: {},
+      errors: ["Company's trading symbol must be only alphabetical "]
+    });
+  }
   request(
     `https://www.sec.gov/cgi-bin/browse-edgar?CIK=${
       req.params.company
