@@ -16,10 +16,15 @@ const wrong_resquest = (req, res) => {
 app.get("/:company/:page?", (req, res) => {
   let page = req.params.page ? req.params.page : 0;
 
+  console.log(
+    `https://www.sec.gov/cgi-bin/browse-edgar?CIK=${
+      req.params.company
+    }&owner=exclude&action=getcompany&output=xml&start=${page * 40}&count=40`
+  );
   request(
     `https://www.sec.gov/cgi-bin/browse-edgar?CIK=${
       req.params.company
-    }&owner=exclude&action=getcompany&output=xml&start=${page * 40}&count=${++page * 40}`,
+    }&owner=exclude&action=getcompany&output=xml&start=${page * 40}&count=40`,
     { headers: { Accept: "application/xml" } },
     (err, resp, body) => {
       if (err) {
