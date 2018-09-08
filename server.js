@@ -41,7 +41,9 @@ app.get("/:company/:page?", (req, res) => {
         if (err) {
           return res.json({
             result: {},
-            errors: ["There was error while parsing the company's data"]
+            errors: [
+              "There was error while parsing the company's data, maybe there is a typo on the trading symbol?"
+            ]
           });
         }
         if (result) {
