@@ -28,12 +28,18 @@ app.get("/:company/:page?", (req, res) => {
     }&owner=exclude&action=getcompany&output=xml&start=${page * 40}&count=40`,
     { headers: { Accept: "application/xml" } },
     (err, resp, body) => {
+      //error on requesting data
       if (err) {
         console.log(err);
+        return res.json({
+          result: {},
+          errors: ["There was an error requesting data to Edgar"]
+        });
       }
       parseString(body, (err, result) => {
+        //error parsing data
         if (err) {
-          res.json({
+          return res.json({
             result: {},
             errors: ["There was error while retrieving the company's data"]
           });
@@ -46,7 +52,7 @@ app.get("/:company/:page?", (req, res) => {
               formName: f.formName ? f.formName[0] : "-- Empty data --",
               type: f.type ? f.type[0] : "-- Empty data --"
             }));
-            res.json({
+            return res.json({
               result: {
                 name: result.companyFilings.companyInfo[0].name[0],
                 filings: filings
@@ -55,7 +61,7 @@ app.get("/:company/:page?", (req, res) => {
             });
             //Response has no filings, only name. This could be because count exceeded existing filings
           } else {
-            res.json({
+            return res.json({
               result: {
                 name: result.companyFilings.companyInfo[0].name[0],
                 filings: []
@@ -63,8 +69,9 @@ app.get("/:company/:page?", (req, res) => {
               errors: []
             });
           }
+          //any other case
         } else {
-          res.json({
+          return res.json({
             result: {},
             errors: ["There was error while retrieving the company's data"]
           });
