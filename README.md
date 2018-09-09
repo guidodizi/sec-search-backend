@@ -19,5 +19,5 @@ There are two parameters for the API:
   * `page?: number` - this parameter is *optional*, if not given, will default to 0. A page that exceeds count of available filings will return an empty array of filings
  
  ### Route
-  `https://sec-search-backend.herokuapp.com/{*company*}/{*page?*}`
+  `https://sec-search-backend.herokuapp.com/{company}/{page?}`
   
