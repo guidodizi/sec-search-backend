@@ -10,3 +10,14 @@ To run this project locally, run:
 `npm start`
 
 A deployed api of this code can be found at [Sec-Search-Backend](https://sec-search-backend.herokuapp.com)
+
+## Basic API Documentation
+
+### Parameters
+There are two parameters for the API:
+  * `company: string` - Company trading symbol, this could be *aapl* for Apple Inc, *msft* for Microsoft, etc.
+  * `page?: number` - this parameter is *optional*, if not given, will default to 0. A page that exceeds count of available filings will return an empty array of filings
+ 
+ ### Route
+  https://sec-search-backend.herokuapp.com/{*company*}/{*page?*}
+  
