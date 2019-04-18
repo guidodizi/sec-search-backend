@@ -9,14 +9,19 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "nodemon server.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "compression": "^1.7.4",
     "cors": "^2.8.4",
     "express": "^4.16.3",
+    "helmet": "^3.16.0",
     "request": "^2.88.0",
     "xml2js": "^0.4.19"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.11"
   }
 }
