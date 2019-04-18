@@ -8,11 +8,8 @@ function requestEdgar(company, page) {
         40}&count=40`,
       { headers: { Accept: "application/xml" } },
       (err, resp, body) => {
-        if (!err && resp.statusCode === 200) {
-          resolve(body);
-        } else {
-          reject(new Error("Request to edgar failed"));
-        }
+        if (!err && resp.statusCode === 200) resolve(body);
+        else reject(new Error("There was an error requesting data to Edgar"));
       }
     );
   });
@@ -21,20 +18,23 @@ function requestEdgar(company, page) {
 function parseXml(edgar) {
   return new Promise((resolve, reject) => {
     parseString(edgar, (err, result) => {
-      if (err) reject(new Error("Error parsing Edgar xml"));
+      if (err)
+        reject(
+          new Error(
+            "There was error while parsing the company's data, maybe there is a typo on the trading symbol?"
+          )
+        );
       else resolve(result);
     });
   });
 }
 
-exports.get_fillings = async function(req, res) {
+exports.get_fillings = async function(req, res, next) {
   let page = req.params.page ? req.params.page : 0;
-
   if (!/^[a-zA-Z]+$/.test(req.params.company)) {
-    return res.status(400).json({
-      result: {},
-      errors: ["Company's trading symbol must be only alphabetical "]
-    });
+    const err = new Error("Company's trading symbol must be only alphabetical ");
+    err.status = 400;
+    next(err);
   }
   try {
     const edgar = await requestEdgar(req.params.company, page);
@@ -67,29 +67,18 @@ exports.get_fillings = async function(req, res) {
         }
         //any other case
       } else {
-        throw new Error("Error parsing Edgar xml");
+        next(new Error("Error parsing Edgar xml"));
       }
     } catch (err) {
-      console.error(err);
-      return res.status(400).json({
-        result: {},
-        errors: [
-          "There was error while parsing the company's data, maybe there is a typo on the trading symbol?"
-        ]
-      });
+      err.status = 400;
+      next(err);
     }
   } catch (err) {
-    console.error(err);
-    return res.status(400).json({
-      result: {},
-      errors: ["There was an error requesting data to Edgar"]
-    });
+    err.status = 400;
+    next(err);
   }
 };
 
-exports.wrong_resquest = (req, res) => {
-  res.json({
-    result: {},
-    errors: ["Please provide a company by its trading symbol and optionally a page"]
-  });
+exports.wrong_resquest = (req, res, next) => {
+  next(new Error("Please provide a company by its trading symbol and optionally a page"));
 };
