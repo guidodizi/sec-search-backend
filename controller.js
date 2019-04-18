@@ -9,7 +9,11 @@ function requestEdgar(company, page) {
       { headers: { Accept: "application/xml" } },
       (err, resp, body) => {
         if (!err && resp.statusCode === 200) resolve(body);
-        else reject(new Error("There was an error requesting data to Edgar"));
+        else {
+          const error = new Error("There was an error requesting data to Edgar");
+          error.status = 400;
+          reject(error);
+        }
       }
     );
   });
@@ -18,13 +22,13 @@ function requestEdgar(company, page) {
 function parseXml(edgar) {
   return new Promise((resolve, reject) => {
     parseString(edgar, (err, result) => {
-      if (err)
-        reject(
-          new Error(
-            "There was error while parsing the company's data, maybe there is a typo on the trading symbol?"
-          )
+      if (err) {
+        const error = new Error(
+          "There was error while parsing the company's data, maybe there is a typo on the trading symbol?"
         );
-      else resolve(result);
+        error.status = 400;
+        reject(error);
+      } else resolve(result);
     });
   });
 }
@@ -38,43 +42,37 @@ exports.get_fillings = async function(req, res, next) {
   }
   try {
     const edgar = await requestEdgar(req.params.company, page);
-    try {
-      const result = await parseXml(edgar);
-      if (result) {
-        if (result.companyFilings.results && result.companyFilings.results.length === 1) {
-          const filings = result.companyFilings.results[0].filing.map(f => ({
-            dateFiled: f.dateFiled ? f.dateFiled[0] : "-- Empty data --",
-            filingHREF: f.filingHREF ? f.filingHREF[0] : "-- Empty data --",
-            formName: f.formName ? f.formName[0] : "-- Empty data --",
-            type: f.type ? f.type[0] : "-- Empty data --"
-          }));
-          return res.status(200).json({
-            result: {
-              name: result.companyFilings.companyInfo[0].name[0],
-              filings: filings
-            },
-            errors: []
-          });
-          //Response has no filings, only name. This could be because count exceeded existing filings
-        } else {
-          return res.status(200).json({
-            result: {
-              name: result.companyFilings.companyInfo[0].name[0],
-              filings: []
-            },
-            errors: []
-          });
-        }
-        //any other case
+    const result = await parseXml(edgar);
+    if (result) {
+      if (result.companyFilings.results && result.companyFilings.results.length === 1) {
+        const filings = result.companyFilings.results[0].filing.map(f => ({
+          dateFiled: f.dateFiled ? f.dateFiled[0] : "-- Empty data --",
+          filingHREF: f.filingHREF ? f.filingHREF[0] : "-- Empty data --",
+          formName: f.formName ? f.formName[0] : "-- Empty data --",
+          type: f.type ? f.type[0] : "-- Empty data --"
+        }));
+        return res.status(200).json({
+          result: {
+            name: result.companyFilings.companyInfo[0].name[0],
+            filings: filings
+          },
+          errors: []
+        });
+        // Response has no filings, only name. This could be because count exceeded existing filings
       } else {
-        next(new Error("Error parsing Edgar xml"));
+        return res.status(200).json({
+          result: {
+            name: result.companyFilings.companyInfo[0].name[0],
+            filings: []
+          },
+          errors: []
+        });
       }
-    } catch (err) {
-      err.status = 400;
-      next(err);
+      // any other case
+    } else {
+      next(new Error("Error parsing Edgar xml"));
     }
   } catch (err) {
-    err.status = 400;
     next(err);
   }
 };
