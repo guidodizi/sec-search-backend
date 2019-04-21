@@ -40,40 +40,37 @@ exports.get_fillings = async function(req, res, next) {
     err.status = 400;
     next(err);
   }
-  try {
-    const edgar = await requestEdgar(req.params.company, page);
-    const result = await parseXml(edgar);
-    if (result) {
-      if (result.companyFilings.results && result.companyFilings.results.length === 1) {
-        const filings = result.companyFilings.results[0].filing.map(f => ({
-          dateFiled: f.dateFiled ? f.dateFiled[0] : "-- Empty data --",
-          filingHREF: f.filingHREF ? f.filingHREF[0] : "-- Empty data --",
-          formName: f.formName ? f.formName[0] : "-- Empty data --",
-          type: f.type ? f.type[0] : "-- Empty data --"
-        }));
-        return res.status(200).json({
-          result: {
-            name: result.companyFilings.companyInfo[0].name[0],
-            filings: filings
-          },
-          errors: []
-        });
-        // Response has no filings, only name. This could be because count exceeded existing filings
-      } else {
-        return res.status(200).json({
-          result: {
-            name: result.companyFilings.companyInfo[0].name[0],
-            filings: []
-          },
-          errors: []
-        });
-      }
-      // any other case
+
+  const edgar = await requestEdgar(req.params.company, page).catch(err => next(err));
+  const result = await parseXml(edgar).catch(err => next(err));
+  if (result) {
+    if (result.companyFilings.results && result.companyFilings.results.length === 1) {
+      const filings = result.companyFilings.results[0].filing.map(f => ({
+        dateFiled: f.dateFiled ? f.dateFiled[0] : "-- Empty data --",
+        filingHREF: f.filingHREF ? f.filingHREF[0] : "-- Empty data --",
+        formName: f.formName ? f.formName[0] : "-- Empty data --",
+        type: f.type ? f.type[0] : "-- Empty data --"
+      }));
+      return res.status(200).json({
+        result: {
+          name: result.companyFilings.companyInfo[0].name[0],
+          filings: filings
+        },
+        errors: []
+      });
+      // Response has no filings, only name. This could be because count exceeded existing filings
     } else {
-      next(new Error("Error parsing Edgar xml"));
+      return res.status(200).json({
+        result: {
+          name: result.companyFilings.companyInfo[0].name[0],
+          filings: []
+        },
+        errors: []
+      });
     }
-  } catch (err) {
-    next(err);
+    // any other case
+  } else {
+    next(new Error("Error parsing Edgar xml"));
   }
 };
 
